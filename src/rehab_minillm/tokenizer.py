@@ -5,7 +5,6 @@ from pathlib import Path
 
 import sentencepiece as spm
 
-
 SPECIAL_TOKENS = ["<pad>", "<unk>", "<bos>", "<eos>"]
 
 

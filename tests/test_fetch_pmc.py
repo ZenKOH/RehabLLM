@@ -1,7 +1,6 @@
 from importlib import util
 from pathlib import Path
 
-
 MODULE_PATH = Path(__file__).parents[1] / "scripts" / "fetch_pmc.py"
 spec = util.spec_from_file_location("fetch_pmc", MODULE_PATH)
 assert spec and spec.loader

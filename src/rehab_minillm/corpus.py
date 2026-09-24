@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
-
 # Intentionally excludes NC and ND licences for the default reusable training corpus.
 PERMISSIVE_PMC_LICENSE_FILTERS: dict[str, str] = {
     "CC0": '"cc0 license"[filter]',
