@@ -24,6 +24,10 @@ dev = [
   "ruff>=0.6",
   "jupyter>=1.0",
 ]
+cloud = [
+  "datasets>=4.0",
+  "huggingface-hub>=1.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
