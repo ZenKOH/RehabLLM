@@ -32,13 +32,46 @@ def cosine_lr(step: int, config: ExperimentConfig) -> float:
         return train.min_learning_rate
     ratio = (step - train.warmup_steps) / max(1, train.max_steps - train.warmup_steps)
     coeff = 0.5 * (1.0 + math.cos(math.pi * ratio))
-    return train.min_learning_rate + coeff * (train.learning_rate - train.min_learning_rate)
+    return train.min_learning_rate + coeff * (
+        train.learning_rate - train.min_learning_rate
+    )
+
+
+def latest_checkpoint(out_dir: str | Path) -> Path | None:
+    out_path = Path(out_dir)
+    candidates = list(out_path.glob("step_*.pt"))
+    if not candidates:
+        return None
+
+    def step_number(path: Path) -> int:
+        try:
+            return int(path.stem.rsplit("_", 1)[-1])
+        except ValueError:
+            return -1
+
+    return max(candidates, key=step_number)
+
+
+def resolve_resume_checkpoint(
+    resume: str | Path | None,
+    out_dir: str | Path,
+) -> Path | None:
+    if resume is None:
+        return None
+    if str(resume).lower() == "latest":
+        return latest_checkpoint(out_dir)
+
+    path = Path(resume)
+    if not path.exists():
+        raise FileNotFoundError(f"Resume checkpoint does not exist: {path}")
+    return path
 
 
 def save_checkpoint(
     path: Path,
     model: RehabMiniLLM,
     optimizer: torch.optim.Optimizer,
+    scaler: torch.amp.GradScaler,
     step: int,
     config: ExperimentConfig,
 ) -> None:
@@ -50,6 +83,7 @@ def save_checkpoint(
             "training_config": asdict(config.training),
             "model_state": model.state_dict(),
             "optimizer_state": optimizer.state_dict(),
+            "scaler_state": scaler.state_dict(),
         },
         path,
     )
@@ -60,6 +94,7 @@ def train(
     train_tokens: str | Path,
     val_tokens: str | Path,
     out_dir: str | Path,
+    resume: str | Path | None = None,
 ) -> None:
     config = load_config(config_path)
     train_cfg = config.training
@@ -79,6 +114,30 @@ def train(
     scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    resume_path = resolve_resume_checkpoint(resume, out_dir)
+    start_step = 0
+    if resume_path is not None:
+        payload = torch.load(resume_path, map_location=device)
+        checkpoint_model_config = payload.get("model_config")
+        if checkpoint_model_config != asdict(model_cfg):
+            raise ValueError(
+                "Resume checkpoint model configuration does not match the current config."
+            )
+        start_step = int(payload.get("step", 0))
+        if start_step > train_cfg.max_steps:
+            raise ValueError(
+                f"Checkpoint step {start_step} exceeds configured max_steps "
+                f"{train_cfg.max_steps}."
+            )
+        model.load_state_dict(payload["model_state"])
+        optimizer.load_state_dict(payload["optimizer_state"])
+        scaler_state = payload.get("scaler_state")
+        if scaler_state:
+            scaler.load_state_dict(scaler_state)
+        print(f"resuming_from={resume_path}")
+        print(f"resume_step={start_step}")
+
     manifest = build_run_manifest(
         config,
         train_tokens,
@@ -86,6 +145,10 @@ def train(
         model.parameter_count(),
         device,
     )
+    manifest["resume"] = {
+        "checkpoint": str(resume_path) if resume_path is not None else None,
+        "start_step": start_step,
+    }
     write_run_manifest(out_dir / "run_manifest.json", manifest)
 
     print(f"device={device}")
@@ -93,7 +156,7 @@ def train(
     print(f"run_manifest={out_dir / 'run_manifest.json'}")
 
     model.train()
-    for step in range(train_cfg.max_steps):
+    for step in range(start_step, train_cfg.max_steps):
         lr = cosine_lr(step, config)
         for group in optimizer.param_groups:
             group["lr"] = lr
@@ -146,11 +209,19 @@ def train(
                 out_dir / f"step_{current_step:07d}.pt",
                 model,
                 optimizer,
+                scaler,
                 current_step,
                 config,
             )
 
-    save_checkpoint(out_dir / "final.pt", model, optimizer, train_cfg.max_steps, config)
+    save_checkpoint(
+        out_dir / "final.pt",
+        model,
+        optimizer,
+        scaler,
+        train_cfg.max_steps,
+        config,
+    )
 
 
 def main() -> None:
@@ -159,8 +230,13 @@ def main() -> None:
     parser.add_argument("--train", default="data/processed/train.bin")
     parser.add_argument("--val", default="data/processed/val.bin")
     parser.add_argument("--out", default="checkpoints")
+    parser.add_argument(
+        "--resume",
+        default=None,
+        help="Checkpoint path or 'latest' to resume from the newest step_*.pt in --out.",
+    )
     args = parser.parse_args()
-    train(args.config, args.train, args.val, args.out)
+    train(args.config, args.train, args.val, args.out, resume=args.resume)
 
 
 if __name__ == "__main__":
