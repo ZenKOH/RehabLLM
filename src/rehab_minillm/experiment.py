@@ -70,5 +70,4 @@ def build_run_manifest(
 def write_run_manifest(path: str | Path, manifest: dict[str, Any]) -> None:
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "
-", encoding="utf-8")
+    output.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -53,27 +53,22 @@ def main() -> None:
     rejected_path = out_dir / "rejected.jsonl"
     with accepted_path.open("w", encoding="utf-8") as handle:
         for record in result.accepted:
-            handle.write(json.dumps(record, ensure_ascii=False) + "
-")
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
     with rejected_path.open("w", encoding="utf-8") as handle:
         for record in result.rejected:
-            handle.write(json.dumps(record, ensure_ascii=False) + "
-")
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     split_files = {split: (out_dir / f"{split}.txt").open("w", encoding="utf-8") for split in ("train", "val", "test")}
     try:
         for record in result.accepted:
-            split_files[record["split"]].write(record["text"] + "
-<eos>
-")
+            split_files[record["split"]].write(record["text"] + "\n<eos>\n")
     finally:
         for handle in split_files.values():
             handle.close()
 
     stats = dict(result.stats)
     stats["generated_at"] = datetime.now(timezone.utc).isoformat()
-    (out_dir / "stats.json").write_text(json.dumps(stats, indent=2, sort_keys=True) + "
-", encoding="utf-8")
+    (out_dir / "stats.json").write_text(json.dumps(stats, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     manifest = {
         "schema_version": 1,
@@ -93,8 +88,7 @@ def main() -> None:
             "test": str(out_dir / "test.txt"),
         },
     }
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "
-", encoding="utf-8")
+    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(stats, indent=2, sort_keys=True))
 
 

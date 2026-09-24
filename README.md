@@ -107,7 +107,7 @@ See `docs/V0.2_DATA_PIPELINE.md` for the design rationale.
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 pip install -e ".[dev]"
 ```
 
