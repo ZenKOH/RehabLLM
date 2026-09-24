@@ -6,9 +6,10 @@ import math
 import random
 import re
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 WORD_RE = re.compile(r"\b[\w'-]+\b", re.UNICODE)
 WHITESPACE_RE = re.compile(r"[ \t]+")
@@ -203,7 +204,7 @@ class NearDuplicateIndex:
 
 def deterministic_split(identifier: str, config: SplitConfig) -> str:
     config.validate()
-    digest = hashlib.sha256(f"{config.seed}:{identifier}".encode("utf-8")).digest()
+    digest = hashlib.sha256(f"{config.seed}:{identifier}".encode()).digest()
     value = int.from_bytes(digest[:8], "big") / float(1 << 64)
     if value < config.train:
         return "train"

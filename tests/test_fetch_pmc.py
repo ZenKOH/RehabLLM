@@ -1,11 +1,11 @@
-import importlib.util
+from importlib import util
 from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).parents[1] / "scripts" / "fetch_pmc.py"
-spec = importlib.util.spec_from_file_location("fetch_pmc", MODULE_PATH)
+spec = util.spec_from_file_location("fetch_pmc", MODULE_PATH)
 assert spec and spec.loader
-fetch_pmc = importlib.util.module_from_spec(spec)
+fetch_pmc = util.module_from_spec(spec)
 spec.loader.exec_module(fetch_pmc)
 
 

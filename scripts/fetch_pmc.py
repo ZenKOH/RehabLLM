@@ -13,6 +13,7 @@ import json
 import os
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -101,9 +102,10 @@ def _normalise_license(rights: list[str]) -> str | None:
         return "CC0"
     if "creativecommons.org/licenses/by-sa/" in joined or "cc by-sa" in joined:
         return "CC-BY-SA"
-    if "creativecommons.org/licenses/by/" in joined or re.search(r"\bcc by\b", joined):
-        if "by-nc" not in joined and "by-nd" not in joined:
-            return "CC-BY"
+    if (
+        "creativecommons.org/licenses/by/" in joined or re.search(r"\bcc by\b", joined)
+    ) and "by-nc" not in joined and "by-nd" not in joined:
+        return "CC-BY"
     return None
 
 
@@ -221,7 +223,7 @@ def main() -> None:
                 output.write(json.dumps(row, ensure_ascii=False) + "\n")
                 written += 1
                 print(f"[{index}/{len(pmcids)}] wrote {pmcid} ({verified or 'unverified'})")
-            except Exception as exc:
+            except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ET.ParseError) as exc:
                 print(f"warning: {pmcid}: {exc}")
 
     print(f"wrote {written} articles to {out_path}")

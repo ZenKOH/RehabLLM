@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable
 
 
 # Intentionally excludes NC and ND licences for the default reusable training corpus.
