@@ -1,7 +1,6 @@
 from importlib import util
 from pathlib import Path
 
-
 MODULE_PATH = Path(__file__).parents[1] / "scripts" / "build_hf_rehab_corpus.py"
 spec = util.spec_from_file_location("build_hf_rehab_corpus", MODULE_PATH)
 assert spec and spec.loader
