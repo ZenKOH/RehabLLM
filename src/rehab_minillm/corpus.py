@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable
-
 
 # Intentionally excludes NC and ND licences for the default reusable training corpus.
 PERMISSIVE_PMC_LICENSE_FILTERS: dict[str, str] = {
@@ -91,10 +90,13 @@ DEFAULT_REHAB_QUERIES: tuple[TopicQuery, ...] = (
 
 
 def build_pmc_query(topic_query: str, license_filter: str) -> str:
-    return (
-        f"({topic_query}) AND {license_filter} "
-        'NOT "pmc embargo"[filter] NOT hasretractionin NOT articletypeexpressionofconcern'
+    integrity_filters = (
+        'NOT "pmc embargo"[filter] '
+        'NOT articletyperetraction NOT hasretractionin '
+        'NOT articletypeexpressionofconcern NOT hasexpressionofconcernin '
+        'NOT articletypecorrection'
     )
+    return f"({topic_query}) AND {license_filter} {integrity_filters}"
 
 
 def iter_query_plan(

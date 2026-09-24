@@ -9,7 +9,7 @@ from rehab_minillm.tokenizer import train_sentencepiece
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", default="data/raw/pmc_rehab.txt")
+    parser.add_argument("--input", default="data/curated/train.txt")
     parser.add_argument("--prefix", default="data/processed/rehab_sp")
     parser.add_argument("--vocab-size", type=int, default=8000)
     parser.add_argument("--model-type", choices=["bpe", "unigram"], default="bpe")

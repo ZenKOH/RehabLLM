@@ -1,0 +1,21 @@
+quality:
+  min_words: 250
+  max_words: 30000
+  min_alpha_word_fraction: 0.70
+  max_symbol_to_word_ratio: 0.20
+  min_median_word_length: 3.0
+  max_median_word_length: 12.0
+  max_duplicate_line_fraction: 0.35
+
+dedup:
+  shingle_size: 5
+  num_perm: 64
+  bands: 16
+  jaccard_threshold: 0.82
+  seed: 42
+
+splits:
+  train: 0.90
+  val: 0.05
+  test: 0.05
+  seed: 42

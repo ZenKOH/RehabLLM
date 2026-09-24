@@ -1,18 +1,18 @@
-# RehabMiniLLM
+# RehabLLM
 
 **A small decoder-only language model for rehabilitation and rehabilitation robotics, built from scratch in PyTorch.**
 
-RehabMiniLLM is an educational/research project: a compact GPT-style model whose core attention, Transformer blocks, training loop and generation code are implemented directly rather than imported as a ready-made GPT architecture.
+RehabLLM is an educational/research project: a compact GPT-style model whose core attention, Transformer blocks, training loop and generation code are implemented directly rather than imported as a ready-made GPT architecture.
 
-> **Status: v0.1 scaffold.** The code trains and generates text. A useful domain model still requires a properly licensed corpus, GPU training, evaluation and later instruction/RAG stages.
+> **Status: v0.2 corpus-quality phase.** The Transformer is working; v0.2 adds article-level rights verification, quality filtering, near-deduplication, document-level train/validation/test splits, reproducible corpus manifests and checkpoint evaluation.
 
 ## Why rehabilitation?
 
-Rehabilitation is a broad health strategy focused on optimising functioning and reducing disability. WHO estimates that about 2.4 billion people live with a condition that may benefit from rehabilitation. The domain spans neurological, musculoskeletal, cardiopulmonary, developmental and other conditions, while rehabilitation robotics adds exoskeletons, end-effector robots, powered gait systems, upper-limb/hand devices, FES, sensing, BCIs and related technologies.
+Rehabilitation is a broad health strategy focused on optimising functioning and reducing disability. The domain spans neurological, musculoskeletal, cardiopulmonary, developmental and other conditions, while rehabilitation robotics adds exoskeletons, end-effector robots, powered gait systems, upper-limb/hand devices, FES, sensing, BCIs and related technologies.
 
-This project is intentionally designed **not** to assume that more technology is automatically better rehabilitation. Evidence and guidelines can conflict by population, device, outcome, dose and comparator. The evaluation set therefore includes uncertainty, clinical-context and guideline-conflict checks.
+This project is intentionally designed **not** to assume that more technology is automatically better rehabilitation. Evidence and guidelines can conflict by population, device, outcome, dose and comparator. Evaluation therefore includes uncertainty, clinical-context and guideline-conflict checks.
 
-## v0.1 architecture
+## Model architecture
 
 The default `small.yaml` configuration is a 17,437,440-parameter model:
 
@@ -30,28 +30,54 @@ The default `small.yaml` configuration is a 17,437,440-parameter model:
 
 The `tiny.yaml` configuration has 5,263,872 parameters and is intended for CPU/smoke testing.
 
+## v0.2 data pipeline
+
+```text
+PMC discovery
+  ↓
+OAI-PMH article-level rights verification
+  ↓
+BioC full-text retrieval
+  ↓
+quality filters
+  ↓
+exact SHA-256 deduplication
+  ↓
+5-word-shingle MinHash/LSH near-deduplication
+  ↓
+document-level deterministic train/val/test split
+  ↓
+SentencePiece trained on train only
+  ↓
+train.bin / val.bin / test.bin
+  ↓
+training run manifest + held-out evaluation
+```
+
+See `docs/V0.2_DATA_PIPELINE.md` for the design rationale.
+
 ## Repository layout
 
 ```text
 .
 ├── configs/
+│   ├── curation.yaml
 │   ├── tiny.yaml
 │   └── small.yaml
 ├── data/
-│   ├── README.md
 │   ├── eval_prompts.jsonl
 │   ├── raw/
+│   ├── curated/
 │   └── processed/
 ├── docs/
 │   ├── CORPUS_STRATEGY.md
 │   ├── EVALUATION.md
 │   ├── RESEARCH_BASELINE.md
-│   └── SAFETY.md
-├── notebooks/
-│   ├── 01_tokenisation.ipynb
-│   ├── 02_attention.ipynb
-│   └── 03_training.ipynb
+│   ├── SAFETY.md
+│   └── V0.2_DATA_PIPELINE.md
 ├── scripts/
+│   ├── curate_corpus.py
+│   ├── evaluate_model.py
 │   ├── fetch_pmc.py
 │   ├── generate_text.py
 │   ├── prepare_data.py
@@ -61,8 +87,10 @@ The `tiny.yaml` configuration has 5,263,872 parameters and is intended for CPU/s
 │   ├── attention.py
 │   ├── config.py
 │   ├── corpus.py
+│   ├── curation.py
 │   ├── data.py
 │   ├── evaluate.py
+│   ├── experiment.py
 │   ├── generate.py
 │   ├── model.py
 │   ├── tokenizer.py
@@ -83,7 +111,7 @@ source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 pip install -e ".[dev]"
 ```
 
-### 2. Build a permissively licensed rehabilitation corpus from PMC
+### 2. Fetch PMC Open Access material
 
 Set a contact email as requested by NCBI E-Utilities:
 
@@ -92,34 +120,39 @@ export NCBI_EMAIL="you@example.com"
 python scripts/fetch_pmc.py --retmax-per-query 250 --max-articles 2500
 ```
 
-The fetcher uses:
+The fetcher uses NCBI E-Utilities for discovery, PMC OAI-PMH `dc:rights` metadata for article-level rights verification and PMC BioC for full text. The default allow-list is CC0, CC BY and CC BY-SA. It also excludes retraction notices, retracted articles, expressions of concern and correction notices from discovery.
 
-- NCBI E-Utilities for discovery
-- PMC's BioC API for full text
-- only CC0, CC BY and CC BY-SA filters by default
-- a rehabilitation/robotics topic plan
-- deduplication by PMCID
+### 3. Curate, deduplicate and split
 
-It deliberately excludes CC BY-NC and CC BY-ND materials from the default corpus. Always review article-level licence obligations before publishing a dataset or trained model.
+```bash
+python scripts/curate_corpus.py \
+  --input data/raw/pmc_rehab.jsonl \
+  --config configs/curation.yaml \
+  --out-dir data/curated
+```
 
-### 3. Train the tokenizer
+Outputs include accepted/rejected JSONL records, corpus statistics, a build manifest and document-level `train.txt`, `val.txt` and `test.txt` files.
+
+### 4. Train the tokenizer on training text only
 
 ```bash
 python scripts/train_tokenizer.py \
-  --input data/raw/pmc_rehab.txt \
+  --input data/curated/train.txt \
   --prefix data/processed/rehab_sp \
   --vocab-size 8000
 ```
 
-### 4. Tokenise the corpus
+### 5. Tokenise train, validation and test sets
 
 ```bash
 python scripts/prepare_data.py \
-  --input data/raw/pmc_rehab.txt \
+  --train-text data/curated/train.txt \
+  --val-text data/curated/val.txt \
+  --test-text data/curated/test.txt \
   --tokenizer data/processed/rehab_sp.model
 ```
 
-### 5. Smoke-test training
+### 6. Smoke-test training
 
 ```bash
 python scripts/train_model.py \
@@ -129,7 +162,9 @@ python scripts/train_model.py \
   --out checkpoints/tiny
 ```
 
-### 6. Train the ~17M model
+Each run writes `run_manifest.json`, including model/training configuration, source Git commit, environment metadata and SHA-256 hashes of the training/validation token files.
+
+### 7. Train the ~17M model
 
 ```bash
 python scripts/train_model.py \
@@ -139,7 +174,19 @@ python scripts/train_model.py \
   --out checkpoints/small
 ```
 
-### 7. Generate
+### 8. Evaluate on held-out text and domain prompts
+
+```bash
+python scripts/evaluate_model.py \
+  --checkpoint checkpoints/small/final.pt \
+  --tokenizer data/processed/rehab_sp.model \
+  --test data/processed/test.bin \
+  --out eval/small_v0.2.json
+```
+
+This records held-out loss/perplexity plus generated responses for the rehabilitation benchmark prompts and leaves fields for human review.
+
+### 9. Generate text
 
 ```bash
 python scripts/generate_text.py \
@@ -163,25 +210,20 @@ See `docs/CORPUS_STRATEGY.md`.
 
 ## Research guardrails
 
-The source strategy was informed by current authoritative material:
+The source strategy uses official PMC/NCBI retrieval interfaces and records source rights and provenance. “Free to read” is not treated as equivalent to “licensed for reuse”. The default pipeline is deliberately conservative about licensing and research-integrity flags.
 
-- WHO rehabilitation overview: https://www.who.int/news-room/fact-sheets/detail/rehabilitation
-- WHO Package of Interventions for Rehabilitation: https://www.who.int/teams/noncommunicable-diseases/sensory-functions-disability-and-rehabilitation/rehabilitation/service-delivery/package-of-interventions-for-rehabilitation
-- PMC Open Access Subset: https://pmc.ncbi.nlm.nih.gov/tools/openftlist/
-- PMC licence filters: https://pmc.ncbi.nlm.nih.gov/about/userguide/
-- PMC BioC API: https://www.ncbi.nlm.nih.gov/research/bionlp/APIs/BioC-PMC/
-- NCBI E-Utilities: https://www.ncbi.nlm.nih.gov/books/NBK25499/
-- NICE stroke rehabilitation guideline: https://www.nice.org.uk/guidance/ng236/chapter/Recommendations
+Key references are listed in `docs/RESEARCH_BASELINE.md` and `docs/V0.2_DATA_PIPELINE.md`.
 
 The code and source documents are not medical advice. See `docs/SAFETY.md` and `MODEL_CARD.md`.
 
-## What v0.1 is — and is not
+## What v0.2 is — and is not
 
 **It is:**
 
 - a real causal Transformer trained from scratch;
 - inspectable enough to learn how LLMs work;
-- domain-oriented and licence-aware;
+- domain-oriented and licence/provenance-aware;
+- equipped with reproducible curation and evaluation scaffolding;
 - suitable for experimentation, ablations and later domain adaptation.
 
 **It is not:**
@@ -193,9 +235,9 @@ The code and source documents are not medical advice. See `docs/SAFETY.md` and `
 
 ## Roadmap
 
-- **v0.1** — core Transformer, tokenizer, corpus builder, training, generation, tests.
-- **v0.2** — stronger data cleaning/deduplication, experiment tracking, better evaluation.
-- **v0.3** — scale to 50–100M parameters with a mixed general-biomedical + rehabilitation corpus.
+- **v0.1** — core Transformer, tokenizer, corpus builder, training, generation, tests. ✅
+- **v0.2** — rights verification, data cleaning/deduplication, document splits, experiment tracking and evaluation. ✅
+- **v0.3** — build the first substantial mixed corpus and train/compare 17M and 50–100M models.
 - **v0.4** — supervised instruction tuning for rehabilitation Q&A.
 - **v0.5** — retrieval-augmented generation over curated guidelines/papers with citations.
 - **v0.6** — tool use for literature search, calculations and evidence retrieval.
