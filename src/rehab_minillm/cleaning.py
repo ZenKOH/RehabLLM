@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 ANCHOR_RE = re.compile(r"\{#[-\w:.]+\}")
-HTML_TAG_RE = re.compile(r"<[^>]+>")
+HTML_TAG_RE = re.compile(r"</?[A-Za-z][^>]*>")
 MULTISPACE_RE = re.compile(r"[ \t]{2,}")
 MULTINEWLINE_RE = re.compile(r"\n{3,}")
 

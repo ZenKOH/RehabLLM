@@ -64,7 +64,6 @@ class PoliteClient:
             headers={
                 "User-Agent": "RehabMiniLLM/0.4 (research corpus builder)",
                 "Accept": accept,
-                "Accept-Encoding": "gzip, deflate",
             },
         )
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
@@ -170,7 +169,13 @@ def main() -> None:
     client = PoliteClient(min_interval=max(args.request_interval, 0.34))
 
     discovered: dict[str, dict[str, Any]] = defaultdict(
-        lambda: {"topics": set(), "tags": set(), "licences": set(), "queries": set()}
+        lambda: {
+            "topics": set(),
+            "tags": set(),
+            "licences": set(),
+            "queries": set(),
+            "score": 0.0,
+        }
     )
     topics = (\n        ROBOTICS_ENRICHMENT_QUERIES\n        if args.profile == "robotics"\n        else DEFAULT_REHAB_QUERIES\n    )\n    for topic, licence, query in iter_query_plan(topics):
         print(f"discovering topic={topic.name} licence={licence}")
@@ -178,12 +183,17 @@ def main() -> None:
         for uid in ids:
             pmcid = f"PMC{uid}"
             record = discovered[pmcid]
+            if topic.name not in record["topics"]:
+                record["score"] += topic.weight
             record["topics"].add(topic.name)
             record["tags"].update(topic.tags)
             record["licences"].add(licence)
             record["queries"].add(query)
 
-    pmcids = sorted(discovered)[: args.max_articles]
+    pmcids = sorted(
+        discovered,
+        key=lambda pmcid: (-float(discovered[pmcid]["score"]), pmcid),
+    )[: args.max_articles]
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
@@ -216,6 +226,7 @@ def main() -> None:
                     "topics": sorted(meta["topics"]),
                     "tags": sorted(meta["tags"]),
                     "queries": sorted(meta["queries"]),
+                    "enrichment_score": float(meta["score"]),
                     "retrieved_at": datetime.now(timezone.utc).isoformat(),
                     "retrieval_method": "NCBI E-Utilities discovery + PMC OAI-PMH rights + PMC BioC full text",
                     "text": text,

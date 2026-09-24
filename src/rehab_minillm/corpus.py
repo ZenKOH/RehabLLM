@@ -171,6 +171,27 @@ ROBOTICS_ENRICHMENT_QUERIES: tuple[TopicQuery, ...] = (
         1.2,
         ("robotics", "implementation", "safety"),
     ),
+    TopicQuery(
+        "fes_rehabilitation_enrichment",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '("functional electrical stimulation" OR "neuromuscular electrical stimulation" OR FES)',
+        1.4,
+        ("fes", "neurotechnology"),
+    ),
+    TopicQuery(
+        "bci_rehabilitation_enrichment",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '("brain-computer interface" OR "brain computer interface" OR BCI)',
+        1.4,
+        ("bci", "neurotechnology"),
+    ),
+    TopicQuery(
+        "emg_rehabilitation_enrichment",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '(electromyography OR "surface EMG" OR myoelectric)',
+        1.2,
+        ("emg", "neurotechnology"),
+    ),
 )
 
 
