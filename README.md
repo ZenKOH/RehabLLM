@@ -4,7 +4,7 @@
 
 RehabLLM is an educational/research project: a compact GPT-style model whose core attention, Transformer blocks, training loop and generation code are implemented directly rather than imported as a ready-made GPT architecture.
 
-> **Status: v0.3 training phase.** The model/training pipeline is working; v0.3 adds substantial cloud/free-GPU launchers and resumable checkpoint training for Google Colab and Kaggle.
+> **Status: v0.4 data-and-behaviour phase.** v0.3 produced the first trained 17.4M-parameter baseline. v0.4 adds corpus autopsy/cleaning, targeted rehabilitation-robotics enrichment, continued pretraining from the v0.3 weights, and supervised instruction tuning.
 
 ## Why rehabilitation?
 
@@ -100,6 +100,28 @@ See `docs/V0.2_DATA_PIPELINE.md` for the design rationale.
 ├── MODEL_CARD.md
 └── pyproject.toml
 ```
+
+## v0.4: clean, enrich, then teach answer behaviour
+
+The first substantial v0.3 run completed successfully but generated scientific-paper continuation rather than a direct answer. The observed corpus was heavily weighted toward core rehabilitation and contained only 32 robotics documents. v0.4 is designed around that failure mode.
+
+New v0.4 components include:
+
+- `scripts/autopsy_corpus.py` — measure boilerplate/markup contamination and domain mix;
+- `src/rehab_minillm/cleaning.py` — remove publishing boilerplate and section artefacts;
+- `fetch_pmc.py --profile robotics` — targeted permissively licensed PMC enrichment;
+- `scripts/build_v04_corpus.py` — clean, deduplicate and select toward a rehabilitation/robotics/neurotechnology mix;
+- `train_model.py --init-checkpoint` — load v0.3 model weights but start a fresh optimiser for continued domain pretraining;
+- `scripts/prepare_instructions.py` + `scripts/train_sft.py` — supervised instruction tuning with prompt-token loss masking;
+- `scripts/chat_sft.py` — test direct instruction-style answers.
+
+**Important:** v0.4 deliberately reuses the v0.3 8,000-token SentencePiece tokenizer. Changing token identities would invalidate the learned embedding/output matrices.
+
+The guided free-tier workflow is:
+
+`notebooks/RehabLLM_v04_Clean_Enrich_SFT.ipynb`
+
+Run its corpus preparation phase on CPU, persist the results, then switch to a GPU runtime for continued pretraining and SFT. See `docs/V0.4_PIPELINE.md` and `docs/INSTRUCTION_DATA.md`.
 
 ## Free GPU notebook
 
@@ -251,8 +273,8 @@ The code and source documents are not medical advice. See `docs/SAFETY.md` and `
 
 - **v0.1** — core Transformer, tokenizer, corpus builder, training, generation, tests. ✅
 - **v0.2** — rights verification, data cleaning/deduplication, document splits, experiment tracking and evaluation. ✅
-- **v0.3** — build the first substantial mixed corpus and train/compare 17M and 50–100M models.
-- **v0.4** — supervised instruction tuning for rehabilitation Q&A.
+- **v0.3** — first substantial free-GPU 17M baseline, resumable training and held-out evaluation. ✅
+- **v0.4** — corpus autopsy/cleaning, targeted robotics enrichment, continued pretraining and supervised instruction tuning. 🚧
 - **v0.5** — retrieval-augmented generation over curated guidelines/papers with citations.
 - **v0.6** — tool use for literature search, calculations and evidence retrieval.
 

@@ -1,8 +1,8 @@
-# Model Card: RehabLLM v0.2
+# Model Card: RehabLLM v0.4
 
 ## Model summary
 
-RehabLLM v0.2 is a small decoder-only causal language model intended for education and research into domain-specific LLM construction for rehabilitation and rehabilitation robotics.
+RehabLLM v0.4 is a small decoder-only causal language model research stack for rehabilitation and rehabilitation robotics. v0.4 builds on the first trained v0.3 baseline with corpus-cleaning, robotics-enrichment, continued-pretraining and supervised instruction-tuning tooling.
 
 The default `small` configuration uses 8 Transformer blocks, 6 attention heads, 384-dimensional embeddings, an 8,000-token vocabulary and a 512-token context window. No pretrained weights are committed to this repository.
 
@@ -43,3 +43,14 @@ Evaluation covers held-out loss/perplexity plus domain, uncertainty and safety p
 ## Safety
 
 Do not use this model to make health decisions. Any future patient-facing application would require authoritative retrieval, provenance/citations, clinical evaluation, safety controls, privacy review and applicable regulatory assessment.
+
+
+## v0.3 observed baseline
+
+The first substantial v0.3 run used the 17.4M-parameter configuration and produced a held-out test loss of 4.1881 (perplexity 65.90). Its corpus contained 3,546 accepted documents, dominated by core rehabilitation, with only 32 documents classified as rehabilitation robotics. A representative generation continued into competing-interest / author-contribution language instead of directly answering the prompt.
+
+v0.4 treats that as a data-and-behaviour failure mode rather than evidence that more training steps alone are needed.
+
+## v0.4 post-training note
+
+The bundled instruction seed is intentionally small and exists to test the SFT pipeline and response format. It is not sufficient evidence of assistant quality, clinical reliability, or instruction generalisation. A meaningful SFT run requires a substantially larger, human-reviewed instruction set and independent evaluation.

@@ -95,6 +95,7 @@ def train(
     val_tokens: str | Path,
     out_dir: str | Path,
     resume: str | Path | None = None,
+    init_checkpoint: str | Path | None = None,
 ) -> None:
     config = load_config(config_path)
     train_cfg = config.training
@@ -115,8 +116,26 @@ def train(
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    if resume is not None and init_checkpoint is not None:
+        raise ValueError("Use either resume or init_checkpoint, not both.")
+
     resume_path = resolve_resume_checkpoint(resume, out_dir)
+    init_path = Path(init_checkpoint) if init_checkpoint is not None else None
     start_step = 0
+
+    if init_path is not None:
+        if not init_path.exists():
+            raise FileNotFoundError(f"Initial checkpoint does not exist: {init_path}")
+        payload = torch.load(init_path, map_location=device)
+        checkpoint_model_config = payload.get("model_config")
+        if checkpoint_model_config != asdict(model_cfg):
+            raise ValueError(
+                "Initial checkpoint model configuration does not match the current config."
+            )
+        model.load_state_dict(payload["model_state"])
+        print(f"initialised_from={init_path}")
+        print("initialise_mode=model_weights_only")
+
     if resume_path is not None:
         payload = torch.load(resume_path, map_location=device)
         checkpoint_model_config = payload.get("model_config")
@@ -148,6 +167,10 @@ def train(
     manifest["resume"] = {
         "checkpoint": str(resume_path) if resume_path is not None else None,
         "start_step": start_step,
+    }
+    manifest["initialisation"] = {
+        "checkpoint": str(init_path) if init_path is not None else None,
+        "mode": "model_weights_only" if init_path is not None else None,
     }
     write_run_manifest(out_dir / "run_manifest.json", manifest)
 
@@ -230,13 +253,26 @@ def main() -> None:
     parser.add_argument("--train", default="data/processed/train.bin")
     parser.add_argument("--val", default="data/processed/val.bin")
     parser.add_argument("--out", default="checkpoints")
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--resume",
         default=None,
-        help="Checkpoint path or 'latest' to resume from the newest step_*.pt in --out.",
+        help="Checkpoint path or 'latest' to resume the same run, including optimiser state.",
+    )
+    group.add_argument(
+        "--init-checkpoint",
+        default=None,
+        help="Initialise model weights from a checkpoint but start a fresh optimiser/run.",
     )
     args = parser.parse_args()
-    train(args.config, args.train, args.val, args.out, resume=args.resume)
+    train(
+        args.config,
+        args.train,
+        args.val,
+        args.out,
+        resume=args.resume,
+        init_checkpoint=args.init_checkpoint,
+    )
 
 
 if __name__ == "__main__":

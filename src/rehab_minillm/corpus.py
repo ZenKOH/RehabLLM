@@ -22,7 +22,8 @@ class TopicQuery:
 DEFAULT_REHAB_QUERIES: tuple[TopicQuery, ...] = (
     TopicQuery(
         "rehabilitation_robotics_general",
-        '(rehabilitation OR neurorehabilitation) AND (robot OR robotic OR robotics OR exoskeleton OR "end effector")',
+        '(rehabilitation OR neurorehabilitation) AND '
+        '(robot OR robotic OR robotics OR exoskeleton OR "end effector")',
         2.0,
         ("robotics", "rehabilitation"),
     ),
@@ -34,7 +35,8 @@ DEFAULT_REHAB_QUERIES: tuple[TopicQuery, ...] = (
     ),
     TopicQuery(
         "upper_limb_robotics",
-        '(("upper limb" OR arm OR hand) AND rehabilitation) AND (robot OR robotic OR exoskeleton OR "end effector")',
+        '(("upper limb" OR arm OR hand) AND rehabilitation) AND '
+        '(robot OR robotic OR exoskeleton OR "end effector")',
         1.5,
         ("upper-limb", "robotics"),
     ),
@@ -58,25 +60,31 @@ DEFAULT_REHAB_QUERIES: tuple[TopicQuery, ...] = (
     ),
     TopicQuery(
         "brain_computer_interface_rehab",
-        '(rehabilitation OR neurorehabilitation) AND ("brain computer interface" OR "brain-computer interface" OR BCI)',
+        '(rehabilitation OR neurorehabilitation) AND '
+        '("brain computer interface" OR "brain-computer interface" OR BCI)',
         1.1,
         ("bci", "neurotechnology"),
     ),
     TopicQuery(
         "assistive_technology",
-        '(rehabilitation AND ("assistive technology" OR prosthesis OR prosthetic OR orthosis OR orthotic))',
+        '(rehabilitation AND '
+        '("assistive technology" OR prosthesis OR prosthetic OR orthosis OR orthotic))',
         1.0,
         ("assistive-technology",),
     ),
     TopicQuery(
         "neurological_rehabilitation",
-        '(rehabilitation OR neurorehabilitation) AND (stroke OR "spinal cord injury" OR "traumatic brain injury" OR Parkinson OR "cerebral palsy")',
+        '(rehabilitation OR neurorehabilitation) AND '
+        '(stroke OR "spinal cord injury" OR "traumatic brain injury" OR Parkinson '
+        'OR "cerebral palsy")',
         1.2,
         ("neurological-rehabilitation",),
     ),
     TopicQuery(
         "rehab_outcomes",
-        '(rehabilitation AND ("activities of daily living" OR gait OR balance OR "motor function" OR participation OR functioning))',
+        '(rehabilitation AND '
+        '("activities of daily living" OR gait OR balance OR "motor function" '
+        'OR participation OR functioning))',
         0.9,
         ("outcomes", "functioning"),
     ),
@@ -85,6 +93,83 @@ DEFAULT_REHAB_QUERIES: tuple[TopicQuery, ...] = (
         '((physiotherapy OR "physical therapy" OR "occupational therapy") AND rehabilitation)',
         0.8,
         ("therapy", "rehabilitation"),
+    ),
+)
+
+
+ROBOTICS_ENRICHMENT_QUERIES: tuple[TopicQuery, ...] = (
+    TopicQuery(
+        "robot_assisted_stroke_upper_limb",
+        '(stroke AND ("upper limb" OR arm OR hand) AND rehabilitation) AND '
+        '("robot-assisted" OR "robot assisted" OR robotic OR "end effector")',
+        2.0,
+        ("robotics", "stroke", "upper-limb"),
+    ),
+    TopicQuery(
+        "robot_assisted_gait",
+        '(rehabilitation AND gait) AND '
+        '("robot-assisted" OR "robot assisted" OR robotic OR exoskeleton OR "powered gait")',
+        2.0,
+        ("robotics", "gait"),
+    ),
+    TopicQuery(
+        "wearable_exoskeleton_rehabilitation",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '(exoskeleton OR "wearable robot" OR "wearable robotics")',
+        1.8,
+        ("robotics", "exoskeleton"),
+    ),
+    TopicQuery(
+        "hand_robotics",
+        '(rehabilitation AND (hand OR finger OR wrist)) AND '
+        '(robot OR robotic OR exoskeleton OR "end effector")',
+        1.6,
+        ("robotics", "hand"),
+    ),
+    TopicQuery(
+        "spinal_cord_exoskeleton",
+        '("spinal cord injury" AND rehabilitation) AND '
+        '(exoskeleton OR robotic OR "robot-assisted")',
+        1.6,
+        ("robotics", "sci", "exoskeleton"),
+    ),
+    TopicQuery(
+        "robotics_motor_learning",
+        '(rehabilitation AND ("motor learning" OR "motor recovery")) AND '
+        '(robot OR robotic OR "robot-assisted")',
+        1.3,
+        ("robotics", "motor-learning"),
+    ),
+    TopicQuery(
+        "bci_robotic_rehabilitation",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '("brain-computer interface" OR "brain computer interface" OR BCI) AND '
+        '(robot OR robotic OR exoskeleton)',
+        1.5,
+        ("robotics", "bci", "neurotechnology"),
+    ),
+    TopicQuery(
+        "fes_robotic_rehabilitation",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '("functional electrical stimulation" OR FES) AND '
+        '(robot OR robotic OR exoskeleton)',
+        1.5,
+        ("robotics", "fes", "neurotechnology"),
+    ),
+    TopicQuery(
+        "emg_robotic_rehabilitation",
+        '(rehabilitation OR neurorehabilitation) AND '
+        '(electromyography OR EMG OR "myoelectric") AND '
+        '(robot OR robotic OR exoskeleton)',
+        1.3,
+        ("robotics", "emg", "neurotechnology"),
+    ),
+    TopicQuery(
+        "rehabilitation_robot_safety_usability",
+        '(rehabilitation AND (robot OR robotic OR exoskeleton)) AND '
+        '(safety OR usability OR adherence OR acceptability OR implementation)',
+        1.2,
+        ("robotics", "implementation", "safety"),
     ),
 )
 
