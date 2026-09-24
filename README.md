@@ -4,7 +4,7 @@
 
 RehabLLM is an educational/research project: a compact GPT-style model whose core attention, Transformer blocks, training loop and generation code are implemented directly rather than imported as a ready-made GPT architecture.
 
-> **Status: v0.2 corpus-quality phase.** The Transformer is working; v0.2 adds article-level rights verification, quality filtering, near-deduplication, document-level train/validation/test splits, reproducible corpus manifests and checkpoint evaluation.
+> **Status: v0.3 training phase.** The model/training pipeline is working; v0.3 adds substantial cloud/free-GPU launchers and resumable checkpoint training for Google Colab and Kaggle.
 
 ## Why rehabilitation?
 
@@ -100,6 +100,20 @@ See `docs/V0.2_DATA_PIPELINE.md` for the design rationale.
 ├── MODEL_CARD.md
 └── pyproject.toml
 ```
+
+## Free GPU notebook
+
+The easiest zero-cloud-cost path is the single notebook:
+
+`notebooks/RehabLLM_Train_Free_GPU.ipynb`
+
+It auto-detects **Google Colab** or **Kaggle**, verifies CUDA, restores/builds the corpus and tokenizer, trains the 17.4M model, resumes from the newest 500-step checkpoint after interruptions, evaluates the final model and packages the artefacts.
+
+Open directly in Colab:
+
+https://colab.research.google.com/github/ZenKOH/RehabLLM/blob/main/notebooks/RehabLLM_Train_Free_GPU.ipynb
+
+For Kaggle, import the same notebook from GitHub and enable a GPU accelerator. See `docs/FREE_GPU_NOTEBOOK.md`.
 
 ## Quick start
 
