@@ -12,6 +12,7 @@ import torch
 from .config import ExperimentConfig, load_config
 from .data import random_batch
 from .evaluate import estimate_loss, perplexity
+from .experiment import build_run_manifest, write_run_manifest
 from .model import RehabMiniLLM
 
 
@@ -77,9 +78,19 @@ def train(
     amp_enabled = bool(train_cfg.amp and device.type == "cuda")
     scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
     out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    manifest = build_run_manifest(
+        config,
+        train_tokens,
+        val_tokens,
+        model.parameter_count(),
+        device,
+    )
+    write_run_manifest(out_dir / "run_manifest.json", manifest)
 
     print(f"device={device}")
     print(f"parameters={model.parameter_count():,}")
+    print(f"run_manifest={out_dir / 'run_manifest.json'}")
 
     model.train()
     for step in range(train_cfg.max_steps):

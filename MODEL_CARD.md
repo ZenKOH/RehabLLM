@@ -1,10 +1,10 @@
-# Model Card: RehabMiniLLM v0.1
+# Model Card: RehabLLM v0.2
 
 ## Model summary
 
-RehabMiniLLM v0.1 is a small decoder-only causal language model intended for education and research into domain-specific LLM construction for rehabilitation and rehabilitation robotics.
+RehabLLM v0.2 is a small decoder-only causal language model intended for education and research into domain-specific LLM construction for rehabilitation and rehabilitation robotics.
 
-The default `small` configuration uses 8 Transformer blocks, 6 attention heads, 384-dimensional embeddings, an 8,000-token vocabulary and a 512-token context window.
+The default `small` configuration uses 8 Transformer blocks, 6 attention heads, 384-dimensional embeddings, an 8,000-token vocabulary and a 512-token context window. No pretrained weights are committed to this repository.
 
 ## Intended uses
 
@@ -12,6 +12,7 @@ The default `small` configuration uses 8 Transformer blocks, 6 attention heads, 
 - small-scale language-modelling experiments;
 - rehabilitation-domain corpus experiments;
 - tokenizer/data-mixture studies;
+- curation/deduplication research;
 - later research into instruction tuning and retrieval augmentation.
 
 ## Out-of-scope uses
@@ -23,19 +24,21 @@ The default `small` configuration uses 8 Transformer blocks, 6 attention heads, 
 - substitution for licensed rehabilitation professionals;
 - deployment as a medical device without appropriate validation/regulatory work.
 
-## Training data
+## Training-data pipeline
 
-No weights are shipped in v0.1. The repository includes tooling to create a corpus from permissively licensed PMC Open Access material using CC0, CC BY and CC BY-SA search filters and official NCBI/PMC APIs.
+v0.2 includes tooling to discover PMC Open Access material using official NCBI/PMC interfaces, verify article-level rights using PMC OAI-PMH `dc:rights`, retrieve full text through BioC, apply quality filters, remove exact and near duplicates, and create document-level train/validation/test splits.
 
-Users are responsible for confirming source licences and downstream obligations. Code licensing does not relicense training data.
+The default rights allow-list is CC0, CC BY and CC BY-SA. Users remain responsible for confirming source licences and downstream obligations. Code licensing does not relicense training data.
 
 ## Known limitations
 
 At 10–20M parameters, a from-scratch model will be dramatically less capable than contemporary billion-parameter models. Expected limitations include weak reasoning, hallucination, outdated knowledge, memorisation risk, poor instruction following before post-training, and unreliable medical factuality.
 
+Quality and near-duplicate filtering are heuristic. The v0.2 MinHash/LSH implementation is designed for inspectability and moderate corpus sizes, not billion-document throughput.
+
 ## Evaluation
 
-Initial evaluation covers validation loss/perplexity plus domain, uncertainty and safety prompts. Clinical validation has not been performed.
+Evaluation covers held-out loss/perplexity plus domain, uncertainty and safety prompts. Generated benchmark responses are stored for human review. Clinical validation has not been performed.
 
 ## Safety
 
