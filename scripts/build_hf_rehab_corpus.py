@@ -66,7 +66,7 @@ ASSISTIVE_TERMS = (
     "augmentative communication",
 )
 
-DEFAULT_QUOTAS = {
+DEFAULT_TARGET_MIX = {
     "robotics": 3000,
     "core_rehab": 5000,
     "neurotechnology": 2000,
@@ -101,15 +101,44 @@ def classify_document(text: str) -> str | None:
     return None
 
 
-def quotas_from_target(target_docs: int) -> dict[str, int]:
-    base_total = sum(DEFAULT_QUOTAS.values())
-    quotas = {
+def targets_from_total(target_docs: int) -> dict[str, int]:
+    base_total = sum(DEFAULT_TARGET_MIX.values())
+    targets = {
         key: max(1, round(target_docs * value / base_total))
-        for key, value in DEFAULT_QUOTAS.items()
+        for key, value in DEFAULT_TARGET_MIX.items()
     }
-    difference = target_docs - sum(quotas.values())
-    quotas["core_rehab"] += difference
-    return quotas
+    targets["core_rehab"] += target_docs - sum(targets.values())
+    return targets
+
+
+def write_progress(
+    out_dir: Path,
+    dataset_id: str,
+    target_docs: int,
+    scanned: int,
+    counts: Counter[str],
+    licences: Counter[str],
+    split_counts: Counter[str],
+    reject_reasons: Counter[str],
+    total_words: int,
+) -> None:
+    progress = {
+        "schema_version": 1,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "dataset": dataset_id,
+        "target_docs": target_docs,
+        "accepted_docs": sum(counts.values()),
+        "scanned_docs": scanned,
+        "category_counts": dict(counts),
+        "split_counts": dict(split_counts),
+        "license_counts": dict(licences),
+        "rejected": dict(reject_reasons),
+        "accepted_words": total_words,
+    }
+    (out_dir / "gpu_corpus_progress.json").write_text(
+        json.dumps(progress, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def main() -> None:
@@ -118,8 +147,9 @@ def main() -> None:
     )
     parser.add_argument("--dataset", default=DATASET_ID)
     parser.add_argument("--target-docs", type=int, default=12000)
-    parser.add_argument("--max-scanned", type=int, default=4_800_000)
-    parser.add_argument("--shuffle-buffer", type=int, default=50000)
+    parser.add_argument("--min-docs", type=int, default=2000)
+    parser.add_argument("--max-scanned", type=int, default=1_000_000)
+    parser.add_argument("--progress-every", type=int, default=5000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out-dir", default="data/curated")
     args = parser.parse_args()
@@ -128,7 +158,7 @@ def main() -> None:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    quotas = quotas_from_target(args.target_docs)
+    target_mix = targets_from_total(args.target_docs)
     counts: Counter[str] = Counter()
     licences: Counter[str] = Counter()
     reject_reasons: Counter[str] = Counter()
@@ -147,8 +177,9 @@ def main() -> None:
     )
     split_config = SplitConfig(train=0.90, val=0.05, test=0.05, seed=args.seed)
 
+    print(f"Loading streaming dataset: {args.dataset}", flush=True)
     dataset = load_dataset(args.dataset, split="train", streaming=True)
-    dataset = dataset.shuffle(seed=args.seed, buffer_size=args.shuffle_buffer)
+    print("Dataset stream ready. Scanning for rehabilitation documents...", flush=True)
 
     split_files = {
         split: (out_dir / f"{split}.txt").open("w", encoding="utf-8")
@@ -175,8 +206,6 @@ def main() -> None:
                 if category is None:
                     reject_reasons["not_rehabilitation"] += 1
                     continue
-                if counts[category] >= quotas[category]:
-                    continue
 
                 metrics = quality_metrics(text)
                 reasons = quality_reasons(metrics, quality_config)
@@ -202,39 +231,78 @@ def main() -> None:
                 split_counts[split] += 1
                 total_words += metrics.words
 
-                if sum(counts.values()) >= args.target_docs:
+                accepted = sum(counts.values())
+                if accepted % 250 == 0:
+                    print(
+                        f"accepted={accepted:,}/{args.target_docs:,} "
+                        f"scanned={scanned:,} categories={dict(counts)}",
+                        flush=True,
+                    )
+                    records.flush()
+                    for handle in split_files.values():
+                        handle.flush()
+                    write_progress(
+                        out_dir,
+                        args.dataset,
+                        args.target_docs,
+                        scanned,
+                        counts,
+                        licences,
+                        split_counts,
+                        reject_reasons,
+                        total_words,
+                    )
+
+                if accepted >= args.target_docs:
                     break
+
+                if scanned % args.progress_every == 0:
+                    print(
+                        f"scanned={scanned:,} accepted={accepted:,}",
+                        flush=True,
+                    )
     finally:
         for handle in split_files.values():
             handle.close()
 
+    accepted_docs = sum(counts.values())
     stats = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "dataset": args.dataset,
         "target_docs": args.target_docs,
-        "accepted_docs": sum(counts.values()),
+        "minimum_docs": args.min_docs,
+        "accepted_docs": accepted_docs,
         "scanned_docs": scanned,
-        "category_quotas": quotas,
+        "category_target_mix": target_mix,
         "category_counts": dict(counts),
         "split_counts": dict(split_counts),
         "license_counts": dict(licences),
         "rejected": dict(reject_reasons),
         "accepted_words": total_words,
         "note": (
-            "Upstream common-pile/pubmed_filtered is already filtered/deduplicated; "
-            "this pass adds domain, licence and quality controls."
+            "Category targets are descriptive rather than hard quotas so free-GPU "
+            "sessions do not stall while searching for rare subdomains. "
+            "The upstream dataset is already filtered/deduplicated; this pass adds "
+            "rehabilitation-domain, licence and quality controls."
         ),
     }
     (out_dir / "gpu_corpus_stats.json").write_text(
         json.dumps(stats, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    print(json.dumps(stats, indent=2, sort_keys=True))
-    if stats["accepted_docs"] < args.target_docs:
+    print(json.dumps(stats, indent=2, sort_keys=True), flush=True)
+
+    if accepted_docs < args.min_docs:
         raise SystemExit(
-            f"Only collected {stats['accepted_docs']} of {args.target_docs} requested documents "
-            f"after scanning {scanned}. Increase --max-scanned or relax quotas."
+            f"Only collected {accepted_docs} usable documents after scanning {scanned}. "
+            f"At least {args.min_docs} are required."
+        )
+    if accepted_docs < args.target_docs:
+        print(
+            f"Proceeding with {accepted_docs:,} documents; target was "
+            f"{args.target_docs:,}.",
+            flush=True,
         )
 
 
