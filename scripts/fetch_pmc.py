@@ -22,7 +22,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from rehab_minillm.corpus import iter_query_plan
+from rehab_minillm.corpus import (
+    DEFAULT_REHAB_QUERIES,
+    ROBOTICS_ENRICHMENT_QUERIES,
+    iter_query_plan,
+)
 
 ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 BIOC = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode"
@@ -62,9 +66,8 @@ class PoliteClient:
         request = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "RehabMiniLLM/0.2 (research corpus builder)",
+                "User-Agent": "RehabMiniLLM/0.4 (research corpus builder)",
                 "Accept": accept,
-                "Accept-Encoding": "gzip, deflate",
             },
         )
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
@@ -152,6 +155,12 @@ def flatten_bioc(payload: Any) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default="data/raw/pmc_rehab.jsonl")
+    parser.add_argument(
+        "--profile",
+        choices=("standard", "robotics"),
+        default="standard",
+        help="Use the broad rehabilitation query plan or the v0.4 robotics enrichment plan.",
+    )
     parser.add_argument("--retmax-per-query", type=int, default=250)
     parser.add_argument("--max-articles", type=int, default=2500)
     parser.add_argument(
@@ -170,20 +179,36 @@ def main() -> None:
     client = PoliteClient(min_interval=max(args.request_interval, 0.34))
 
     discovered: dict[str, dict[str, Any]] = defaultdict(
-        lambda: {"topics": set(), "tags": set(), "licences": set(), "queries": set()}
+        lambda: {
+            "topics": set(),
+            "tags": set(),
+            "licences": set(),
+            "queries": set(),
+            "score": 0.0,
+        }
     )
-    for topic, licence, query in iter_query_plan():
+    topics = (
+        ROBOTICS_ENRICHMENT_QUERIES
+        if args.profile == "robotics"
+        else DEFAULT_REHAB_QUERIES
+    )
+    for topic, licence, query in iter_query_plan(topics):
         print(f"discovering topic={topic.name} licence={licence}")
         ids = esearch(client, query, args.retmax_per_query, email, api_key)
         for uid in ids:
             pmcid = f"PMC{uid}"
             record = discovered[pmcid]
+            if topic.name not in record["topics"]:
+                record["score"] += topic.weight
             record["topics"].add(topic.name)
             record["tags"].update(topic.tags)
             record["licences"].add(licence)
             record["queries"].add(query)
 
-    pmcids = sorted(discovered)[: args.max_articles]
+    pmcids = sorted(
+        discovered,
+        key=lambda pmcid: (-float(discovered[pmcid]["score"]), pmcid),
+    )[: args.max_articles]
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
@@ -216,6 +241,7 @@ def main() -> None:
                     "topics": sorted(meta["topics"]),
                     "tags": sorted(meta["tags"]),
                     "queries": sorted(meta["queries"]),
+                    "enrichment_score": float(meta["score"]),
                     "retrieved_at": datetime.now(timezone.utc).isoformat(),
                     "retrieval_method": "NCBI E-Utilities discovery + PMC OAI-PMH rights + PMC BioC full text",
                     "text": text,
