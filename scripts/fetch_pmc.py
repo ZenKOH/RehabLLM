@@ -22,7 +22,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from rehab_minillm.corpus import (\n    DEFAULT_REHAB_QUERIES,\n    ROBOTICS_ENRICHMENT_QUERIES,\n    iter_query_plan,\n)
+from rehab_minillm.corpus import (
+    DEFAULT_REHAB_QUERIES,
+    ROBOTICS_ENRICHMENT_QUERIES,
+    iter_query_plan,
+)
 
 ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 BIOC = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode"
@@ -150,7 +154,13 @@ def flatten_bioc(payload: Any) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", default="data/raw/pmc_rehab.jsonl")\n    parser.add_argument(\n        "--profile",\n        choices=("standard", "robotics"),\n        default="standard",\n        help="Use the broad rehabilitation query plan or the v0.4 robotics enrichment plan.",\n    )
+    parser.add_argument("--out", default="data/raw/pmc_rehab.jsonl")
+    parser.add_argument(
+        "--profile",
+        choices=("standard", "robotics"),
+        default="standard",
+        help="Use the broad rehabilitation query plan or the v0.4 robotics enrichment plan.",
+    )
     parser.add_argument("--retmax-per-query", type=int, default=250)
     parser.add_argument("--max-articles", type=int, default=2500)
     parser.add_argument(
@@ -177,7 +187,12 @@ def main() -> None:
             "score": 0.0,
         }
     )
-    topics = (\n        ROBOTICS_ENRICHMENT_QUERIES\n        if args.profile == "robotics"\n        else DEFAULT_REHAB_QUERIES\n    )\n    for topic, licence, query in iter_query_plan(topics):
+    topics = (
+        ROBOTICS_ENRICHMENT_QUERIES
+        if args.profile == "robotics"
+        else DEFAULT_REHAB_QUERIES
+    )
+    for topic, licence, query in iter_query_plan(topics):
         print(f"discovering topic={topic.name} licence={licence}")
         ids = esearch(client, query, args.retmax_per_query, email, api_key)
         for uid in ids:
