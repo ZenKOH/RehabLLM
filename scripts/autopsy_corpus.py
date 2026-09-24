@@ -5,8 +5,9 @@ import argparse
 import hashlib
 import json
 from collections import Counter, defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from rehab_minillm.cleaning import clean_document, detect_contamination
 from rehab_minillm.domain import classify_record
@@ -103,10 +104,8 @@ def main() -> None:
         "# RehabLLM v0.4 corpus autopsy",
         "",
         f"- Documents: {documents:,}",
-        f"- Documents with detected contamination: {contaminated_docs:,} "
-        f"({report['contaminated_document_fraction']:.1%})",
-        f"- Estimated characters removed by v0.4 cleaner: "
-        f"{report['estimated_removed_fraction']:.1%}",
+        f"- Documents with detected contamination: {contaminated_docs:,} ({report['contaminated_document_fraction']:.1%})",
+        f"- Estimated characters removed by v0.4 cleaner: {report['estimated_removed_fraction']:.1%}",
         "",
         "## Domain mix",
         "",
@@ -126,9 +125,7 @@ def main() -> None:
             "",
             "## Interpretation",
             "",
-            "This report is descriptive. A high marker count identifies training-text noise, "
-            "not scientific invalidity. v0.4 removes publishing boilerplate and markup while "
-            "preserving substantive rehabilitation content.",
+            "This report is descriptive. A high marker count identifies training-text noise, not scientific invalidity. v0.4 removes publishing boilerplate and markup while preserving substantive rehabilitation content.",
             "",
         ]
     )

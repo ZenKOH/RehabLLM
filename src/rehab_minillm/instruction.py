@@ -20,7 +20,7 @@ class InstructionExample:
     id: str = ""
 
     @classmethod
-    def from_dict(cls, row: dict[str, Any]) -> "InstructionExample":
+    def from_dict(cls, row: dict[str, Any]) -> InstructionExample:
         instruction = str(row.get("instruction") or "").strip()
         response = str(row.get("response") or "").strip()
         context = str(row.get("context") or "").strip()
@@ -46,8 +46,8 @@ def format_instruction_prompt(example: InstructionExample) -> str:
 
 
 def example_fingerprint(example: InstructionExample) -> str:
-    payload = "\n".join(
-        (example.instruction.strip(), example.context.strip(), example.response.strip())
+    payload = (
+        f"{example.instruction.strip()}\n{example.context.strip()}\n{example.response.strip()}"
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 

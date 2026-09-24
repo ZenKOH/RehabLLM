@@ -12,42 +12,42 @@ MULTINEWLINE_RE = re.compile(r"\n{3,}")
 BOILERPLATE_HEADINGS: dict[str, re.Pattern[str]] = {
     "competing_interests": re.compile(
         r"^(conflicts? of interest|conflict-of-interest|competing interests?|declaration of interests?)\s*:?$",
-        re.I,
+        re.IGNORECASE,
     ),
     "author_contributions": re.compile(
-        r"^(authors?'? contributions?|author contributions?|contributions?)\s*:?$", re.I
+        r"^(authors?'? contributions?|author contributions?|contributions?)\s*:?$", re.IGNORECASE
     ),
-    "acknowledgements": re.compile(r"^(acknowledg(e)?ments?)\s*:?$", re.I),
-    "funding": re.compile(r"^(funding|funding information|financial support)\s*:?$", re.I),
+    "acknowledgements": re.compile(r"^(acknowledg(e)?ments?)\s*:?$", re.IGNORECASE),
+    "funding": re.compile(r"^(funding|funding information|financial support)\s*:?$", re.IGNORECASE),
     "data_availability": re.compile(
         r"^(availability of data and materials|data availability|data sharing statement)\s*:?$",
-        re.I,
+        re.IGNORECASE,
     ),
     "ethics": re.compile(
         r"^(ethics approval|ethical approval|ethics statement|consent for publication)\s*:?$",
-        re.I,
+        re.IGNORECASE,
     ),
-    "references": re.compile(r"^(references|bibliography)\s*:?$", re.I),
+    "references": re.compile(r"^(references|bibliography)\s*:?$", re.IGNORECASE),
 }
 
 CONTENT_HEADINGS = re.compile(
     r"^(\d+(?:\.\d+)*[.)]?\s*)?"
     r"(abstract|introduction|background|methods?|materials and methods|results?|discussion|"
     r"limitations?|conclusions?|clinical implications|future work)\s*:?$",
-    re.I,
+    re.IGNORECASE,
 )
 
 INLINE_PATTERNS: dict[str, re.Pattern[str]] = {
     "no_competing_interests": re.compile(
         r"\bthe authors? declare(?:s)? that (?:they|he|she) ha(?:ve|s) no "
         r"(?:competing|conflicting) interests?\.?",
-        re.I,
+        re.IGNORECASE,
     ),
     "authors_approved": re.compile(
-        r"\ball authors? read and approved the final manuscript\.?", re.I
+        r"\ball authors? read and approved the final manuscript\.?", re.IGNORECASE
     ),
     "authors_contributed": re.compile(
-        r"\ball authors? contributed to (?:the )?(?:study|manuscript)[^.]*\.", re.I
+        r"\ball authors? contributed to (?:the )?(?:study|manuscript)[^.]*\.", re.IGNORECASE
     ),
 }
 

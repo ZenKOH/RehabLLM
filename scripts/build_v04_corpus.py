@@ -49,8 +49,8 @@ def select_mixture(
         record["category"] = category
         groups[category].append(record)
 
-    for category in groups:
-        groups[category].sort(key=lambda row: stable_rank(str(row.get("id")), seed))
+    for group in groups.values():
+        group.sort(key=lambda row: stable_rank(str(row.get("id")), seed))
 
     targets = target_counts(target_docs, DEFAULT_V04_MIX)
     selected: list[dict[str, Any]] = []
