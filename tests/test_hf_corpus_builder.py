@@ -41,6 +41,6 @@ def test_license_normalisation_is_conservative():
 
 
 def test_quota_total_matches_target():
-    quotas = builder.quotas_from_target(12000)
-    assert sum(quotas.values()) == 12000
-    assert quotas["robotics"] > quotas["neurotechnology"]
+    targets = builder.targets_from_total(12000)
+    assert sum(targets.values()) == 12000
+    assert targets["robotics"] > targets["neurotechnology"]
