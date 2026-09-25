@@ -1,9 +1,9 @@
 import ast
 import json
-from pathlib import Path
+import pathlib
 
 
-NOTEBOOK = Path(__file__).parents[1] / "notebooks" / "RehabLLM_v04_Clean_Enrich_SFT.ipynb"
+NOTEBOOK = pathlib.Path(__file__).parents[1] / "notebooks" / "RehabLLM_v04_Clean_Enrich_SFT.ipynb"
 
 
 def _load_notebook():
