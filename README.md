@@ -113,7 +113,8 @@ New v0.4 components include:
 - `scripts/build_v04_corpus.py` — clean, deduplicate and select toward a rehabilitation/robotics/neurotechnology mix;
 - `train_model.py --init-checkpoint` — load v0.3 model weights but start a fresh optimiser for continued domain pretraining;
 - `scripts/prepare_instructions.py` + `scripts/train_sft.py` — supervised instruction tuning with prompt-token loss masking;
-- `scripts/chat_sft.py` — test direct instruction-style answers.
+- `scripts/chat_sft.py` — test direct instruction-style answers;
+- `scripts/assess_v04_readiness.py` — explicit GPU go/no-go gate based on corpus size, domain mix, split sizes and cleaning statistics.
 
 **Important:** v0.4 deliberately reuses the v0.3 8,000-token SentencePiece tokenizer. Changing token identities would invalidate the learned embedding/output matrices.
 

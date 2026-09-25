@@ -101,12 +101,15 @@ def main() -> None:
     clean_stats: Counter[str] = Counter()
 
     for record in raw:
-        result = clean_document(str(record.get("text") or ""))
+        source_text = str(record.get("text") or "")
+        result = clean_document(source_text)
         record = dict(record)
         record["text"] = result.text
         record["cleaning"] = result.to_dict()
         cleaned_records.append(record)
         clean_stats["documents"] += 1
+        clean_stats["original_chars"] += result.original_chars
+        clean_stats["cleaned_chars"] += result.cleaned_chars
         clean_stats["removed_chars"] += result.removed_chars
         for key, value in result.removed_sections.items():
             clean_stats[f"removed_section:{key}"] += value
@@ -170,8 +173,13 @@ def main() -> None:
         for handle in split_handles.values():
             handle.close()
 
+    if clean_stats["original_chars"]:
+        clean_stats["removed_fraction_ppm"] = round(
+            1_000_000 * clean_stats["removed_chars"] / clean_stats["original_chars"]
+        )
+
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "inputs": args.input,
         "raw_records": len(raw),
         "post_clean_dedup_records": len(curated.accepted),
