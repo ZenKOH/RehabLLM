@@ -1,4 +1,4 @@
-.PHONY: install test fetch curate tokenizer prepare train-tiny evaluate v04-autopsy v04-robotics v04-build v04-instructions
+.PHONY: install test fetch curate tokenizer prepare train-tiny evaluate v04-autopsy v04-robotics v04-build v04-instructions v04-readiness
 
 install:
 	pip install -e ".[dev]"
@@ -35,3 +35,6 @@ v04-build:
 
 v04-instructions:
 	python scripts/prepare_instructions.py --input data/instruction_seed.jsonl --out-dir data/v04/instructions
+
+v04-readiness:
+	python scripts/assess_v04_readiness.py --stats data/v04/v04_corpus_stats.json
