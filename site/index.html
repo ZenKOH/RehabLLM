@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0c1824">
+  <meta name="description" content="RehabLLM is an open, inspectable research project exploring rehabilitation language models, evidence interpretation and responsible model evaluation.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="RehabLLM — Evidence before claims">
+  <meta property="og:description" content="An experimental rehabilitation language model and a transparent, source-linked research notebook. Not a clinical decision tool.">
+  <title>RehabLLM — Evidence before claims</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#top" class="brand" aria-label="RehabLLM, back to top">
+          <span class="brand-mark" aria-hidden="true"><span class="brand-line"></span><span class="brand-dot"></span></span>
+          <span>rehab<span class="brand-highlight">LLM</span><span class="brand-period">.</span></span>
+          <span class="brand-tag">RESEARCH LAB</span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#evidence">Evidence notes</a>
+          <a href="#research">The model</a>
+          <a href="#method">Method</a>
+          <a href="#roadmap">Roadmap</a>
+        </nav>
+        <a class="header-link" href="https://github.com/ZenKOH/RehabLLM" target="_blank" rel="noopener noreferrer" aria-label="View RehabLLM repository on GitHub, opens a new tab">
+          GitHub <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> EXPERIMENTAL AI · REHABILITATION SCIENCE</div>
+            <h1 id="hero-title">Evidence before <em>claims.</em></h1>
+            <p class="hero-lead">Building an inspectable language-model research project for rehabilitation—and questioning what AI can actually justify.</p>
+            <p class="hero-detail">RehabLLM explores model training, data provenance and evidence interpretation. The research is real. Clinical reliability has <strong>not</strong> been established.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#evidence">Explore evidence notes <span aria-hidden="true">↗</span></a>
+              <a class="button button-quiet" href="#research">Understand the model <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="hero-signal"><span class="signal-icon" aria-hidden="true">◎</span> Not a medical chatbot. No patient-specific advice. <a href="#safety">Why this matters</a></div>
+          </div>
+          <div class="hero-art" aria-label="Illustration showing the process from research sources to evidence, model experiments and review">
+            <div class="visual-head"><span><i></i> RESEARCH PIPELINE</span><span>v0.4 / IN PROGRESS</span></div>
+            <div class="pipeline-main">
+              <div class="pipeline-card pipeline-top"><span class="pipeline-index">01 / SOURCE</span><strong>Research literature</strong><small>Licences · Provenance · Context</small></div>
+              <div class="pipeline-connector" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div class="pipeline-card pipeline-mid"><span class="pipeline-index">02 / EXPERIMENT</span><strong>Compact language model</strong><small>Train · Measure · Challenge</small></div>
+              <div class="pipeline-connector" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div class="pipeline-card pipeline-end"><span class="pipeline-index">03 / EVALUATE</span><strong>Evidence and uncertainty</strong><small>Human review required</small></div>
+            </div>
+            <div class="visual-foot"><span>TRANSPARENCY > HYPE</span><span>OPEN RESEARCH</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="status-strip" aria-label="Documented research baseline">
+        <div class="container status-grid">
+          <div class="status-unit"><strong>17.4<span>M</span></strong><span>Model parameters</span></div>
+          <div class="status-unit"><strong>3,546</strong><span>Accepted documents in v0.3</span></div>
+          <div class="status-unit"><strong>512</strong><span>Token context length</span></div>
+          <div class="status-note">Documented <strong>v0.3 research baseline</strong>, not clinical-performance metrics. <a href="https://github.com/ZenKOH/RehabLLM/blob/main/MODEL_CARD.md" target="_blank" rel="noopener noreferrer">Read the model card ↗</a></div>
+        </div>
+      </section>
+
+      <section class="section evidence-section" id="evidence" aria-labelledby="evidence-title">
+        <div class="container">
+          <div class="section-heading">
+            <div><span class="section-index">01 — EVIDENCE NOTEBOOK</span><h2 id="evidence-title">Read the claim. <em>Check the source.</em></h2></div>
+            <p>Illustrative, manually selected sources. These are short notes—not a systematic review or live literature search.</p>
+          </div>
+          <div class="evidence-toolbar" aria-label="Filter evidence notes">
+            <div class="filter-buttons" role="group" aria-label="Filter by theme">
+              <button class="filter active" type="button" data-filter="all" aria-pressed="true">All notes</button>
+              <button class="filter" type="button" data-filter="guidelines" aria-pressed="false">Guidelines</button>
+              <button class="filter" type="button" data-filter="foundations" aria-pressed="false">Foundations</button>
+              <button class="filter" type="button" data-filter="data-rights" aria-pressed="false">Data rights</button>
+            </div>
+            <label class="search-wrap" for="evidence-search"><span class="visually-hidden">Search evidence notes</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.7" cy="10.7" r="6.4"></circle><path d="m15.4 15.4 5 5"></path></svg><input id="evidence-search" type="search" autocomplete="off" placeholder="Search notes…"></label>
+          </div>
+          <p class="results-line" id="results-line" aria-live="polite">Showing 4 source-linked notes</p>
+          <div class="evidence-grid" id="evidence-grid">
+            <article class="evidence-card" data-category="guidelines" data-search="stroke robot-assisted arm training NICE NG236 guideline upper limb rehabilitation recommendation">
+              <div class="card-top"><span class="topic-chip">CLINICAL GUIDELINE</span><span class="card-number">01 / 04</span></div>
+              <h3>Robot-assisted arm training after stroke</h3>
+              <p>NICE NG236 recommends against offering robot-assisted arm training as part of an upper-limb rehabilitation programme after stroke (recommendation 1.13.18, 2023).</p>
+              <div class="not-claim"><strong>Interpret carefully</strong><span>This is a specific guideline recommendation—not a verdict on every rehabilitation robot or research intervention.</span></div>
+              <div class="card-footer"><span>NICE · NG236 · 2023</span><a href="https://www.nice.org.uk/guidance/ng236/chapter/Recommendations" target="_blank" rel="noopener noreferrer">Primary source <span aria-hidden="true">↗</span></a></div>
+            </article>
+            <article class="evidence-card" data-category="foundations" data-search="WHO rehabilitation functioning independence participation disability definition environment">
+              <div class="card-top"><span class="topic-chip topic-mint">FOUNDATIONAL CONCEPT</span><span class="card-number">02 / 04</span></div>
+              <h3>Rehabilitation is larger than robotics</h3>
+              <p>The World Health Organization frames rehabilitation around optimising functioning and reducing disability in the context of a person's health condition and environment.</p>
+              <div class="not-claim"><strong>Interpret carefully</strong><span>More devices, sessions or repetitions do not automatically establish meaningful gains in daily life or participation.</span></div>
+              <div class="card-footer"><span>WHO · Fact sheet</span><a href="https://www.who.int/news-room/fact-sheets/detail/rehabilitation" target="_blank" rel="noopener noreferrer">Primary source <span aria-hidden="true">↗</span></a></div>
+            </article>
+            <article class="evidence-card" data-category="guidelines" data-search="NICE electromechanical gait training stroke research study recommendation 1.13.24">
+              <div class="card-top"><span class="topic-chip">CLINICAL GUIDELINE</span><span class="card-number">03 / 04</span></div>
+              <h3>Electromechanical gait training</h3>
+              <p>NICE NG236 recommends offering electromechanical gait training after stroke only in the context of a research study (recommendation 1.13.24, from 2013).</p>
+              <div class="not-claim"><strong>Interpret carefully</strong><span>Research-only guidance indicates an evidence or implementation question; it does not establish that a device is universally ineffective.</span></div>
+              <div class="card-footer"><span>NICE · NG236 · 2013</span><a href="https://www.nice.org.uk/guidance/ng236/chapter/Recommendations" target="_blank" rel="noopener noreferrer">Primary source <span aria-hidden="true">↗</span></a></div>
+            </article>
+            <article class="evidence-card" data-category="data-rights" data-search="PMC PubMed Central open access subset copyright reuse licence text mining data provenance">
+              <div class="card-top"><span class="topic-chip topic-amber">DATA PROVENANCE</span><span class="card-number">04 / 04</span></div>
+              <h3>Open access does not mean unrestricted reuse</h3>
+              <p>PubMed Central distinguishes between material that is readable online and content licensed for reuse. Applicable permissions depend on each article's terms.</p>
+              <div class="not-claim"><strong>Interpret carefully</strong><span>Every training or retrieval pipeline needs article-level rights checks, attribution and compliant collection methods.</span></div>
+              <div class="card-footer"><span>NIH / NLM · PMC</span><a href="https://pmc.ncbi.nlm.nih.gov/tools/openftlist/" target="_blank" rel="noopener noreferrer">Primary source <span aria-hidden="true">↗</span></a></div>
+            </article>
+          </div>
+          <div class="empty-result" id="empty-result" hidden><strong>No matching notes.</strong><p>Try a different search term or select “All notes”.</p></div>
+          <div class="evidence-caveat"><span aria-hidden="true">i</span><p>Source pages are linked for independent verification. Recommendations may change; check the issuing organisation for updates. These notes were reviewed for this prototype on 9 November 2026 and are not exhaustive.</p></div>
+        </div>
+      </section>
+
+      <section class="section model-section" id="research" aria-labelledby="model-title">
+        <div class="container two-column">
+          <div><span class="section-index">02 — INSIDE THE PROJECT</span><h2 id="model-title">An actual model. <em>And an honest boundary.</em></h2><p class="section-description">RehabLLM is a compact decoder-only Transformer implemented from scratch in PyTorch. It exists to make training, evaluation and data decisions inspectable.</p><a class="text-link" href="https://github.com/ZenKOH/RehabLLM/blob/main/MODEL_CARD.md" target="_blank" rel="noopener noreferrer">Explore the documented model card <span aria-hidden="true">↗</span></a></div>
+          <div class="model-detail">
+            <div class="model-detail-head"><span>MODEL SNAPSHOT</span><span class="progress-chip">RESEARCH ONLY</span></div>
+            <dl><div><dt>Architecture</dt><dd>Decoder-only Transformer</dd></div><div><dt>Parameters</dt><dd>17,437,440</dd></div><div><dt>Transformer layers</dt><dd>8</dd></div><div><dt>Attention heads</dt><dd>6</dd></div><div><dt>Context window</dt><dd>512 tokens</dd></div><div><dt>Reported v0.3 test perplexity</dt><dd>65.90</dd></div></dl>
+            <p class="model-detail-note">Perplexity is a language-modelling metric, not a measure of clinical safety or answer accuracy. No trained model weights are distributed in this GitHub repository.</p>
+          </div>
+        </div>
+        <div class="container safety-callout" id="safety"><div class="safety-icon" aria-hidden="true">!</div><div><strong>This is not a clinical decision-support service.</strong><p>No diagnosis, patient-specific treatment selection, stimulation settings, device prescription or emergency advice. There is no public chat service or patient-data collection on this site.</p></div><a href="https://github.com/ZenKOH/RehabLLM/blob/main/docs/SAFETY.md" target="_blank" rel="noopener noreferrer">Read safety boundaries <span aria-hidden="true">↗</span></a></div>
+      </section>
+
+      <section class="section method-section" id="method" aria-labelledby="method-title">
+        <div class="container"><div class="section-heading"><div><span class="section-index">03 — RESEARCH METHOD</span><h2 id="method-title">Transparent by <em>design.</em></h2></div><p>Good research records what is known, what remains uncertain, and where a model fails.</p></div>
+          <div class="method-grid">
+            <article class="method-card"><span class="method-number">01</span><div class="method-line"></div><h3>Collect with rights</h3><p>Document article-level permissions, provenance and inclusion criteria. Remove duplicates and publishing artefacts.</p><a href="https://github.com/ZenKOH/RehabLLM/blob/main/docs/CORPUS_STRATEGY.md" target="_blank" rel="noopener noreferrer">Corpus strategy ↗</a></article>
+            <article class="method-card"><span class="method-number">02</span><div class="method-line"></div><h3>Run reproducible experiments</h3><p>Record configurations, checkpoints and hold-out evaluation. Keep research artefacts separate from the public website.</p><a href="https://github.com/ZenKOH/RehabLLM/blob/main/docs/V0.4_PIPELINE.md" target="_blank" rel="noopener noreferrer">v0.4 pipeline ↗</a></article>
+            <article class="method-card"><span class="method-number">03</span><div class="method-line"></div><h3>Test the uncomfortable questions</h3><p>Look for guideline conflicts, invented claims, inappropriate certainty and unsafe requests—not just fluent output.</p><a href="https://github.com/ZenKOH/RehabLLM/blob/main/docs/EVALUATION.md" target="_blank" rel="noopener noreferrer">Evaluation framework ↗</a></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section roadmap-section" id="roadmap" aria-labelledby="roadmap-title">
+        <div class="container roadmap-layout"><div><span class="section-index">04 — DEVELOPMENT ROADMAP</span><h2 id="roadmap-title">Progress is a <em>question of evidence.</em></h2><p class="section-description">The website is a first public-facing research prototype. It does not imply that the model has been clinically validated or made available for inference.</p></div>
+          <ol class="timeline"><li><span class="timeline-marker done" aria-hidden="true"></span><div><div class="timeline-row"><strong>v0.3 — Trained baseline</strong><span class="timeline-status done-text">Documented</span></div><p>End-to-end small-model training and held-out evaluation; baseline limitations recorded.</p></div></li><li><span class="timeline-marker current" aria-hidden="true"></span><div><div class="timeline-row"><strong>v0.4 — Better data and instruction behaviour</strong><span class="timeline-status">In progress</span></div><p>Corpus cleaning, rehabilitation-robotics enrichment, supervised instruction tuning and additional evaluation.</p></div></li><li><span class="timeline-marker" aria-hidden="true"></span><div><div class="timeline-row"><strong>v0.5 — Source-grounded retrieval</strong><span class="timeline-status">Planned</span></div><p>Explore dated, referenced evidence retrieval before generating research summaries.</p></div></li><li><span class="timeline-marker" aria-hidden="true"></span><div><div class="timeline-row"><strong>v0.6 — Research tools</strong><span class="timeline-status">Planned</span></div><p>Experiment with literature search and evaluation tools, subject to demonstrated reliability.</p></div></li></ol>
+        </div>
+      </section>
+      <section class="closing-section"><div class="container closing-inner"><div><span class="section-index">OPEN RESEARCH · REAL LIMITATIONS</span><h2>Better questions lead to <em>better systems.</em></h2><p>Inspect the research, challenge its assumptions and follow the documented work.</p></div><a class="button button-primary" href="https://github.com/ZenKOH/RehabLLM" target="_blank" rel="noopener noreferrer">View the GitHub project <span aria-hidden="true">↗</span></a></div></section>
+    </main>
+    <footer class="footer"><div class="container footer-inner"><span>© 2026 RehabLLM research project</span><span>Educational research only · No clinical advice · No user submissions</span><a href="https://github.com/ZenKOH/RehabLLM/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Code licence ↗</a></div></footer>
+  </div>
+</body>
+</html>
