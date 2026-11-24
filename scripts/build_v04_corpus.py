@@ -92,7 +92,7 @@ def main() -> None:
     )
     parser.add_argument("--input", nargs="+", required=True)
     parser.add_argument("--out-dir", default="data/v04")
-    parser.add_argument("--target-docs", type=int, default=6000)
+    parser.add_argument("--target-docs", type=int, default=4500)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 

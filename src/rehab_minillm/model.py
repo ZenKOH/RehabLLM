@@ -72,9 +72,18 @@ class RehabMiniLLM(nn.Module):
         temperature: float = 0.8,
         top_k: int | None = 50,
         top_p: float | None = 0.95,
+        eos_id: int | None = None,
+        generator: torch.Generator | None = None,
     ) -> torch.Tensor:
         if temperature <= 0:
             raise ValueError("temperature must be > 0")
+        if max_new_tokens < 0:
+            raise ValueError("max_new_tokens must be non-negative")
+        if tokens.ndim != 2 or tokens.size(0) == 0 or tokens.size(1) == 0:
+            raise ValueError("tokens must be a non-empty batch of token sequences")
+        if eos_id is not None and not 0 <= eos_id < self.config.vocab_size:
+            raise ValueError("eos_id must be in the model vocabulary")
+        finished = torch.zeros(tokens.size(0), dtype=torch.bool, device=tokens.device)
 
         for _ in range(max_new_tokens):
             context = tokens[:, -self.config.context_length :]
@@ -97,8 +106,13 @@ class RehabMiniLLM(nn.Module):
                 logits.scatter_(1, sorted_indices, sorted_logits)
 
             probs = torch.softmax(logits, dim=-1)
-            next_token = torch.multinomial(probs, num_samples=1)
+            next_token = torch.multinomial(probs, num_samples=1, generator=generator)
+            if eos_id is not None:
+                next_token = torch.where(finished[:, None], eos_id, next_token)
+                finished |= next_token[:, 0] == eos_id
             tokens = torch.cat((tokens, next_token), dim=1)
+            if eos_id is not None and bool(finished.all()):
+                break
 
         return tokens
 

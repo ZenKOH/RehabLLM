@@ -42,6 +42,7 @@ def main() -> None:
         temperature=args.temperature,
         top_k=args.top_k,
         top_p=args.top_p,
+        eos_id=tokenizer.eos_id if tokenizer.eos_id >= 0 else None,
     )
     print(tokenizer.decode(out[0].tolist()))
 
