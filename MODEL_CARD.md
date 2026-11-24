@@ -54,3 +54,7 @@ v0.4 treats that as a data-and-behaviour failure mode rather than evidence that 
 ## v0.4 post-training note
 
 The bundled instruction seed is intentionally small and exists to test the SFT pipeline and response format. It is not sufficient evidence of assistant quality, clinical reliability, or instruction generalisation. A meaningful SFT run requires a substantially larger, human-reviewed instruction set and independent evaluation.
+
+## v0.4.1 implementation update
+
+v0.4.1 fixes padding access, rejects oversized SFT examples, isolates prompt groups, stops at EOS and adds reproducible completion-only evaluation. A local source-linked evidence index is also available. The architecture is unchanged; these code changes do not supply new trained weights or new model-quality results. See [the run guide](docs/V0.4.1_RELIABILITY.md) for the experiment still to be executed and reviewed.

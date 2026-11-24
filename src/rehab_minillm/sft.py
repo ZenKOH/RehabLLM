@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import asdict
+from itertools import islice
 from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
 
 from .config import ExperimentConfig, load_config
-from .instruction import InstructionDataset, load_instruction_jsonl
+from .experiment import git_commit, sha256_file
+from .instruction import InstructionDataset, load_instruction_jsonl, validate_instruction_splits
 from .model import RehabMiniLLM
 from .tokenizer import SentencePieceTokenizer
 from .train import cosine_lr, latest_checkpoint, set_seed
@@ -33,22 +36,27 @@ def estimate_sft_loss(
     batches: int,
     device: torch.device,
 ) -> float:
+    if batches < 1:
+        raise ValueError("batches must be positive")
+    was_training = model.training
     model.eval()
-    losses: list[float] = []
-    iterator = iter(loader)
-    for _ in range(max(1, batches)):
-        try:
-            x, y = next(iterator)
-        except StopIteration:
-            iterator = iter(loader)
-            x, y = next(iterator)
-        x = x.to(device)
-        y = y.to(device)
-        _, loss = model(x, y)
-        assert loss is not None
-        losses.append(float(loss.item()))
-    model.train()
-    return sum(losses) / len(losses)
+    loss_sum = 0.0
+    token_count = 0
+    try:
+        for x, y in islice(loader, batches):
+            x, y = x.to(device), y.to(device)
+            supervised = int((y != -100).sum().item())
+            if not supervised:
+                raise ValueError("SFT evaluation batch contains no response tokens")
+            _, loss = model(x, y)
+            assert loss is not None
+            loss_sum += float(loss.item()) * supervised
+            token_count += supervised
+    finally:
+        model.train(was_training)
+    if not token_count:
+        raise ValueError("SFT validation loader is empty")
+    return loss_sum / token_count
 
 
 def save_sft_checkpoint(
@@ -98,6 +106,13 @@ def train_sft(
             f"model vocab size {model_cfg.vocab_size}."
         )
 
+    # Validate the entire dataset on CPU before loading a potentially large checkpoint.
+    train_examples = load_instruction_jsonl(train_jsonl)
+    val_examples = load_instruction_jsonl(val_jsonl)
+    validate_instruction_splits(train_examples, val_examples)
+    train_dataset = InstructionDataset(train_examples, tokenizer, model_cfg.context_length)
+    val_dataset = InstructionDataset(val_examples, tokenizer, model_cfg.context_length)
+
     base_path = Path(base_checkpoint)
     if not base_path.exists():
         raise FileNotFoundError(f"Base checkpoint does not exist: {base_path}")
@@ -117,11 +132,6 @@ def train_sft(
 
     amp_enabled = bool(train_cfg.amp and device.type == "cuda")
     scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
-
-    train_examples = load_instruction_jsonl(train_jsonl)
-    val_examples = load_instruction_jsonl(val_jsonl)
-    train_dataset = InstructionDataset(train_examples, tokenizer, model_cfg.context_length)
-    val_dataset = InstructionDataset(val_examples, tokenizer, model_cfg.context_length)
 
     train_loader = DataLoader(
         train_dataset,
@@ -157,6 +167,8 @@ def train_sft(
             start_step = int(resume_payload.get("step", 0))
 
     manifest = {
+        "schema_version": 2,
+        "git_commit": git_commit(),
         "stage": "sft",
         "device": str(device),
         "parameters": model.parameter_count(),
@@ -166,11 +178,17 @@ def train_sft(
         "train_examples": len(train_examples),
         "val_examples": len(val_examples),
         "tokenizer": str(tokenizer_path),
+        "input_sha256": {
+            "base_checkpoint": sha256_file(base_path),
+            "tokenizer": sha256_file(tokenizer_path),
+            "train": sha256_file(train_jsonl),
+            "val": sha256_file(val_jsonl),
+        },
+        "overflow_policy": "error",
+        "split_overlap_checked": True,
         "model_config": asdict(model_cfg),
         "training_config": asdict(train_cfg),
     }
-    import json
-
     (out_path / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n",
         encoding="utf-8",

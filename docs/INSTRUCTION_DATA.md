@@ -34,3 +34,9 @@ Instruction examples should be:
 - written as direct answers rather than journal-paper continuations.
 
 The bundled seed set is a smoke test, not a complete instruction corpus.
+
+## v0.4.1 checks
+
+The complete prompt, context, response and EOS must fit in `context_length + 1` tokens for next-token training. Oversized examples fail CPU preflight with their ID; responses are never silently truncated. Run `scripts/audit_instructions.py` with the original tokenizer before allocating a GPU.
+
+Preparation preserves any supplied provenance fields and keeps alternate answers to the same normalised instruction/context in one split. The trainer also rejects overlapping prompt groups in manually prepared splits. This does not detect paraphrases or shared-source leakage; curate those groups before splitting.

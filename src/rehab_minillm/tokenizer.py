@@ -25,6 +25,10 @@ class SentencePieceTokenizer:
     def eos_id(self) -> int:
         return self.processor.eos_id()
 
+    @property
+    def pad_id(self) -> int:
+        return self.processor.pad_id()
+
     def encode(self, text: str, add_bos: bool = False, add_eos: bool = False) -> list[int]:
         ids = self.processor.encode(text, out_type=int)
         if add_bos and self.bos_id >= 0:

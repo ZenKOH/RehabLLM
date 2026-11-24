@@ -4,7 +4,22 @@
 
 RehabLLM is an educational/research project: a compact GPT-style model whose core attention, Transformer blocks, training loop and generation code are implemented directly rather than imported as a ready-made GPT architecture.
 
-> **Status: v0.4 data-and-behaviour phase.** v0.3 produced the first trained 17.4M-parameter baseline. v0.4 adds corpus autopsy/cleaning, targeted rehabilitation-robotics enrichment, continued pretraining from the v0.3 weights, and supervised instruction tuning.
+> **Status: v0.4.1 research reliability update.** The v0.4 training pipeline now has strict instruction-length checks, prompt-group split isolation, EOS-aware inference and reproducible comparisons. An experimental CPU evidence index is available. The documented trained baseline remains v0.3; this update does not report new model-performance results.
+
+## Start with the improved workflow
+
+Use the [v0.4 notebook](notebooks/RehabLLM_v04_Clean_Enrich_SFT.ipynb) for CPU data preparation, an instruction-data audit, the GPU readiness gate, training, then matched baseline/domain/SFT evaluation. It keeps the original v0.3 tokenizer and existing corpus caches. See the [v0.4.1 changes and run guide](docs/V0.4.1_RELIABILITY.md).
+
+To search your own provenance-complete PMC evidence **without a GPU, checkpoint or paid API**:
+
+```bash
+PYTHONPATH=src python scripts/evidence.py build \
+  --input data/raw/pmc_robotics_v04.jsonl
+PYTHONPATH=src python scripts/evidence.py search \
+  --query "stroke upper limb robotics" --out reports/evidence_packet.json
+```
+
+Build the input with the existing PMC fetcher, or provide licensed JSONL records following the [evidence-index contract](docs/EVIDENCE_RETRIEVAL.md). Search returns original passages, source metadata and stable citation identifiers. It does not generate a medical answer. No research papers, trained weights or search index are bundled.
 
 ## Why rehabilitation?
 
@@ -115,6 +130,9 @@ New v0.4 components include:
 - `scripts/prepare_instructions.py` + `scripts/train_sft.py` — supervised instruction tuning with prompt-token loss masking;
 - `scripts/chat_sft.py` — test direct instruction-style answers;
 - `scripts/assess_v04_readiness.py` — explicit GPU go/no-go gate based on corpus size, domain mix, split sizes and cleaning statistics.
+- `scripts/audit_instructions.py` — CPU preflight for complete, in-window answers and isolated train/validation prompts;
+- `scripts/compare_evaluations.py` — matched comparisons with input hashes and stopping reasons;
+- `scripts/evidence.py` — a local SQLite FTS5/BM25 evidence index with source-linked passages.
 
 **Important:** v0.4 deliberately reuses the v0.3 8,000-token SentencePiece tokenizer. Changing token identities would invalidate the learned embedding/output matrices.
 
@@ -276,7 +294,8 @@ The code and source documents are not medical advice. See `docs/SAFETY.md` and `
 - **v0.2** — rights verification, data cleaning/deduplication, document splits, experiment tracking and evaluation. ✅
 - **v0.3** — first substantial free-GPU 17M baseline, resumable training and held-out evaluation. ✅
 - **v0.4** — corpus autopsy/cleaning, targeted robotics enrichment, continued pretraining and supervised instruction tuning. 🚧
-- **v0.5** — retrieval-augmented generation over curated guidelines/papers with citations.
+- **v0.4.1** — training/inference fixes, complete-answer preflight and matched evaluation tooling implemented; full v0.4 corpus/GPU experiment remains to be run and assessed.
+- **v0.5** — local source-linked retrieval prototype implemented; retrieval benchmarking and generated cited answers remain future work.
 - **v0.6** — tool use for literature search, calculations and evidence retrieval.
 
 ## Large files

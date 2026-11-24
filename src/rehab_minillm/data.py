@@ -37,13 +37,15 @@ def random_batch(
     batch_size: int,
     context_length: int,
     device: torch.device,
+    rng: random.Random | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     data = np.memmap(token_path, dtype=np.int32, mode="r")
-    if len(data) <= context_length + 1:
+    if len(data) < context_length + 1:
         raise ValueError("Not enough tokens to sample a batch")
 
     max_start = len(data) - context_length - 1
-    starts = [random.randint(0, max_start) for _ in range(batch_size)]
+    sampler = rng or random
+    starts = [sampler.randint(0, max_start) for _ in range(batch_size)]
     xs = [torch.from_numpy(np.asarray(data[i : i + context_length], dtype=np.int64).copy()) for i in starts]
     ys = [torch.from_numpy(np.asarray(data[i + 1 : i + 1 + context_length], dtype=np.int64).copy()) for i in starts]
     return torch.stack(xs).to(device), torch.stack(ys).to(device)

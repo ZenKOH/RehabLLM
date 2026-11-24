@@ -29,3 +29,6 @@ eval/*
 !eval/.gitkeep
 
 reports/*
+
+# Local retrieval index and evidence packets.
+data/evidence/

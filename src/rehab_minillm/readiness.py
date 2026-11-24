@@ -49,8 +49,17 @@ def assess_v04_readiness(
     original_chars = int(cleaning.get("original_chars") or 0)
     removed_chars = int(cleaning.get("removed_chars") or 0)
     removed_fraction = removed_chars / max(1, original_chars)
+    counts_consistent = (
+        selected > 0
+        and all(isinstance(v, int) and v >= 0 for v in (*categories.values(), *splits.values()))
+        and sum(categories.values()) == selected
+        and sum(splits.values()) == selected
+        and int(splits.get("train") or 0) > 0
+        and 0 <= removed_chars <= original_chars
+    )
 
     checks = {
+        "statistics_consistent": counts_consistent,
         "enough_documents": selected >= thresholds.min_selected_docs,
         "robotics_representation": robotics_fraction >= thresholds.min_robotics_fraction,
         "neurotechnology_representation": neuro_fraction
@@ -66,6 +75,10 @@ def assess_v04_readiness(
 
     reasons: list[str] = []
     labels = {
+        "statistics_consistent": (
+            "Category/split counts must be non-negative and total the selected documents, "
+            "training must be non-empty, and removed characters must be within source size."
+        ),
         "enough_documents": (
             f"Need at least {thresholds.min_selected_docs:,} selected documents; "
             f"found {selected:,}."

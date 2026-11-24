@@ -37,3 +37,11 @@ def test_generation_appends_tokens():
     x = torch.tensor([[2, 5, 9]], dtype=torch.long)
     out = model.generate(x, max_new_tokens=4, temperature=1.0, top_k=10, top_p=0.9)
     assert out.shape == (1, 7)
+
+
+def test_generation_stops_each_batch_sequence_at_eos(monkeypatch):
+    model = RehabMiniLLM(small_config()).eval()
+    samples = iter([torch.tensor([[3], [4]]), torch.tensor([[9], [3]])])
+    monkeypatch.setattr(torch, "multinomial", lambda *args, **kwargs: next(samples))
+    out = model.generate(torch.tensor([[2], [2]]), max_new_tokens=5, eos_id=3)
+    assert out.tolist() == [[2, 3, 3], [2, 4, 3]]

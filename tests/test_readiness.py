@@ -40,3 +40,15 @@ def test_readiness_holds_for_v03_like_domain_mix():
     assert not result.ready
     assert not result.checks["robotics_representation"]
     assert not result.checks["combined_technology_representation"]
+
+
+def test_readiness_rejects_inconsistent_counts_despite_good_thresholds():
+    stats = {
+        "selected_records": 4500,
+        "category_counts": {"robotics": 3000, "neurotechnology": 2500},
+        "split_counts": {"train": 4000, "val": 250, "test": 250},
+        "cleaning": {"original_chars": 10000, "removed_chars": 500},
+    }
+    result = assess_v04_readiness(stats)
+    assert not result.ready
+    assert not result.checks["statistics_consistent"]
